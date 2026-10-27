@@ -1,0 +1,3 @@
+package com.splitmate.domain;
+import jakarta.persistence.*; import java.math.BigDecimal;
+@Entity @Table(name="expense_shares",uniqueConstraints=@UniqueConstraint(columnNames={"expense_id","user_id"})) public class ExpenseShare { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) public Long id; @Column(name="expense_id",nullable=false) public Long expenseId; @Column(name="user_id",nullable=false) public Long userId; @Column(nullable=false,precision=12,scale=2) public BigDecimal amount; protected ExpenseShare(){} public ExpenseShare(Long e,Long u,BigDecimal a){expenseId=e;userId=u;amount=a;} }

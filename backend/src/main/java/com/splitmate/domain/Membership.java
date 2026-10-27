@@ -1,0 +1,3 @@
+package com.splitmate.domain;
+import jakarta.persistence.*;
+@Entity @Table(name="memberships",uniqueConstraints=@UniqueConstraint(columnNames={"household_id","user_id"})) public class Membership { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) public Long id; @Column(name="household_id",nullable=false) public Long householdId; @Column(name="user_id",nullable=false) public Long userId; @Column(nullable=false,length=20) public String role; protected Membership(){} public Membership(Long householdId,Long userId,String role){this.householdId=householdId;this.userId=userId;this.role=role;} }

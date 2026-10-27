@@ -1,0 +1,10 @@
+export type User={userId:number;name:string;email:string};
+export type Member={userId:number;name:string;email:string;role:string};
+export type Household={id:number;name:string;members:Member[]};
+export type Share={userId:number;amount:number};
+export type Expense={id:number;householdId:number;paidBy:number;payerName:string;description:string;category:string;amount:number;expenseDate:string;splitType:string;shares:Share[]};
+export type Balance={userId:number;name:string;net:number};
+export type Transfer={payerId:number;payerName:string;payeeId:number;payeeName:string;amount:number};
+export type Summary={monthlySpend:number;totalSpend:number;expenseCount:number;balances:Balance[];suggestedTransfers:Transfer[]};
+export type Settlement={id:number;payerId:number;payerName:string;payeeId:number;payeeName:string;amount:number;status:string;paidAt:string|null};
+export type Page<T>={content:T[];page:number;size:number;totalElements:number;totalPages:number};

@@ -1,0 +1,1 @@
+package com.splitmate.repo; import com.splitmate.domain.Settlement; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*; public interface SettlementRepository extends JpaRepository<Settlement,Long>{List<Settlement> findByHouseholdIdOrderByCreatedAtDesc(Long householdId); Optional<Settlement> findByIdAndHouseholdId(Long id,Long householdId);}

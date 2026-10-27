@@ -1,0 +1,1 @@
+export default { content: ['./index.html','./src/**/*.{ts,tsx}'], theme: { extend: { colors: { ink:'#20322b', moss:'#377b5a', cream:'#f6f7f4', lime:'#d9efb0' }, fontFamily: { sans:['Inter','ui-sans-serif','system-ui'] } } }, plugins: [] };
