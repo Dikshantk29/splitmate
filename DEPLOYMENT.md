@@ -1,80 +1,90 @@
-# Deploy SplitMate to Render and Vercel
+# Deploy SplitMate with Neon, Render, and Vercel
 
-This project deploys the Spring Boot API and PostgreSQL database on Render, and the Vite frontend on Vercel. You need to push the `splitmoney` folder to a GitHub repository first; both platforms deploy from that repository.
+This setup keeps the Spring Boot API on Render, the React frontend on Vercel, and uses Neon for managed PostgreSQL. Neon’s current Free plan is $0 and includes 100 compute-hours and 1 GB of database storage per project. Compute suspends after five idle minutes and wakes on the next query; free compute and storage limits still apply. [Neon plan details](https://neon.com/docs/introduction/plans)
 
-The included Render Blueprint selects free plans to make the first deployment straightforward. Render’s free web service can sleep after inactivity, and its free Postgres database expires after 30 days. Treat that setup as a temporary demo; upgrade the database to a paid plan before storing household expenses you need to keep.
+You need a GitHub repository before connecting Render and Vercel. These steps do not publish anything automatically from your computer.
 
 ## 1. Push the project to GitHub
 
-1. Create a new GitHub repository, for example `splitmoney`. Keep it private if you prefer.
-2. In VS Code, open the `splitmoney` folder (the one containing `render.yaml`).
-3. Open **Terminal → New Terminal** and run:
+1. In VS Code, open the splitmoney folder (the one containing render.yaml).
+2. Open Terminal → New Terminal and run:
 
-   ```powershell
-   git init
-   git add .
-   git commit -m "Prepare SplitMate for deployment"
-   git branch -M main
-   git remote add origin https://github.com/YOUR_GITHUB_NAME/splitmoney.git
-   git push -u origin main
-   ```
+~~~powershell
+git status
+git add .
+git status
+~~~
 
-   Replace `YOUR_GITHUB_NAME` with your GitHub username. The root `.gitignore` excludes `.env`; check that `.env` is not listed by `git status` before pushing. Never commit `.env` or paste its secrets into GitHub.
+Confirm .env is not listed as staged. The .gitignore excludes it. Create an empty GitHub repository named splitmoney, then run:
 
-## 2. Deploy the API and database on Render
+~~~powershell
+git commit -m "Prepare SplitMate for deployment"
+git branch -M main
+git remote add origin https://github.com/YOUR_GITHUB_NAME/splitmoney.git
+git push -u origin main
+~~~
 
-1. Sign in to Render and choose **New → Blueprint**.
-2. Connect the GitHub repository you just pushed. Render detects the root `render.yaml` and shows the API service and PostgreSQL database it will create.
-3. When asked for `CORS_ALLOWED_ORIGINS`, enter `http://localhost:5173` for now. You’ll replace it with the Vercel URL after the frontend deploys.
-4. Create the Blueprint and wait for the `splitmate-api` service to finish deploying.
-5. Open the API service’s **Settings** page and copy its public URL, for example `https://splitmate-api.onrender.com`.
-6. Confirm the health check succeeds by visiting `https://YOUR-RENDER-API/healthz`. It should return `{"status":"ok"}`.
+Replace YOUR_GITHUB_NAME with your GitHub username. If you already have a Git remote, keep it and push to that repository instead.
 
-The Blueprint wires Render’s private PostgreSQL connection URL into the API. The application converts that URL to the JDBC format Spring needs; Flyway creates the schema on startup. Render generates the JWT signing secret. Keep the database in the same region as the API.
+## 2. Create the free PostgreSQL database on Neon
 
-## 3. Deploy the frontend on Vercel
+1. Sign in at [Neon](https://console.neon.tech/) and create a project.
+2. Choose a region close to your Render API region (the Blueprint uses Render Singapore).
+3. Open the project’s Connect dialog. Select the database and role, then copy the PostgreSQL connection string. It should look like:
 
-1. Sign in to Vercel and choose **Add New → Project**.
-2. Import the same GitHub repository.
-3. In **Root Directory**, choose `frontend` and confirm the selection.
-4. Use these build settings (Vercel usually detects Vite automatically):
-   - Framework preset: **Vite**
-   - Build command: `npm run build`
-   - Output directory: `dist`
-5. Before deploying, add this environment variable under **Environment Variables**:
+~~~text
+postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require&channel_binding=require
+~~~
 
-   ```text
-   VITE_API_URL=https://YOUR-RENDER-API.onrender.com/api
-   ```
+Keep the connection string private. Neon requires encrypted database connections. [Neon connection security](https://neon.com/blog/oops-proof-your-vibe-code-with-neon-because-mistakes-happen)
 
-   Use the API URL copied from Render. Select **Production** (and Preview too if you want preview deployments to call the same API).
-6. Deploy. When Vercel finishes, copy the frontend URL, for example `https://splitmoney.vercel.app`.
+## 3. Deploy the API on Render
 
-Vite embeds `VITE_API_URL` during the build, so if you change it later, redeploy the frontend.
+1. Sign in to Render and choose New → Blueprint.
+2. Connect the GitHub repository. Render reads render.yaml from the repository root and configures the Spring API service.
+3. When prompted for DATABASE_URL, paste the Neon connection string. For CORS_ALLOWED_ORIGINS, enter http://localhost:5173 for now.
+4. Create the Blueprint and wait for splitmate-api to deploy.
+5. Copy the API’s public URL from Render, for example https://splitmate-api.onrender.com.
+6. Visit https://YOUR-RENDER-API/healthz; it should return a JSON response with status ok.
 
-## 4. Allow the Vercel site in the API CORS settings
+Render generates JWT_SECRET. The backend converts Neon’s PostgreSQL connection URL into JDBC format, Flyway creates the schema on startup, and the application listens on Render’s assigned port. [Render Blueprints](https://render.com/docs/blueprint-spec)
 
-1. In Render, open the `splitmate-api` service and go to **Environment**.
-2. Set `CORS_ALLOWED_ORIGINS` to the exact Vercel origin, including `https://` and without a trailing slash. For example:
+## 4. Deploy the frontend on Vercel
 
-   ```text
-   https://splitmoney.vercel.app
-   ```
+1. In Vercel, choose Add New → Project and import the same GitHub repository.
+2. Set Root Directory to frontend and confirm the selection.
+3. Use these Vite settings:
+   - Framework preset: Vite
+   - Build command: npm run build
+   - Output directory: dist
+4. Add this environment variable for Production (and Preview if wanted):
 
-   To allow local development as well, use a comma-separated value:
+~~~text
+VITE_API_URL=https://YOUR-RENDER-API.onrender.com/api
+~~~
 
-   ```text
-   https://splitmoney.vercel.app,http://localhost:5173
-   ```
+Replace the example with the Render URL you copied. Vite exposes client build variables prefixed with VITE_. [Vercel’s Vite guide](https://vercel.com/docs/frameworks/frontend/vite)
+5. Deploy and copy the Vercel site URL, for example https://splitmoney.vercel.app.
 
-3. Save changes and let Render redeploy the API.
+## 5. Allow the Vercel site to call the API
 
-## 5. Check the live app
+1. In Render, open splitmate-api → Environment.
+2. Change CORS_ALLOWED_ORIGINS to the exact Vercel origin, including https:// and without a trailing slash. For example:
 
-Open the Vercel URL, register an account, create a household, and record an expense. Check the API docs at `https://YOUR-RENDER-API/swagger-ui.html` if you want to inspect the endpoints.
+~~~text
+https://YOUR-VERCEL-SITE.vercel.app
+~~~
 
-If the browser reports a CORS error, check that the Render `CORS_ALLOWED_ORIGINS` value exactly matches the Vercel site origin. If sign-in fails while the API is waking up, wait briefly and try again; low-cost Render services may take time to start after inactivity.
+To allow local development too, use a comma-separated value such as https://YOUR-VERCEL-SITE.vercel.app,http://localhost:5173.
+3. Save the change and let Render redeploy.
 
-## Deploy updates
+## 6. Verify
 
-Commit and push code changes to the GitHub branch connected to each platform. Render and Vercel then build and deploy the changes. If only the frontend API URL changes, update `VITE_API_URL` in Vercel and redeploy. If only the frontend origin changes, update `CORS_ALLOWED_ORIGINS` in Render.
+Open the Vercel URL, register an account, create a household, and add an expense. Swagger documentation is at https://YOUR-RENDER-API/swagger-ui.html.
+
+Neon Free includes 100 compute-hours and 1 GB storage per project; when the compute quota is exhausted, the database suspends until the next monthly period or an upgrade. Render’s free API can also sleep after inactivity, so its first request after idle may be slow. [Neon plans](https://neon.com/docs/introduction/plans), [Render free service behavior](https://render.com/docs/free)
+
+## Deploy later changes
+
+Commit and push changes to the GitHub branch connected to Render and Vercel. If the Vercel URL changes, update CORS_ALLOWED_ORIGINS in Render. If the API URL changes, update VITE_API_URL in Vercel and redeploy.
+

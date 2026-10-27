@@ -9,9 +9,7 @@ services:
     healthCheckPath: /healthz
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: splitmate-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRATION_MS
@@ -19,10 +17,3 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         sync: false
 
-databases:
-  - name: splitmate-db
-    databaseName: splitmate
-    user: splitmate_user
-    postgresMajorVersion: "16"
-    plan: free
-    region: singapore

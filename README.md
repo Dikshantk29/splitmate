@@ -20,9 +20,9 @@ SplitMate is a full-stack app for keeping shared household expenses visible and 
 
 The database runs Flyway migrations on startup. Docker Compose persists PostgreSQL data in the `splitmate-db` volume.
 
-## Deploy to Render and Vercel
+## Deploy to Render, Neon, and Vercel
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for the GitHub, Render Blueprint, Vercel frontend, environment variable, and CORS steps.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the GitHub, Neon database, Render Blueprint, Vercel frontend, environment variable, and CORS steps.
 
 ## Run locally
 

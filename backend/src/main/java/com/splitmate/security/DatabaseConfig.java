@@ -26,10 +26,12 @@ public class DatabaseConfig {
                 if (!"postgres".equals(uri.getScheme()) && !"postgresql".equals(uri.getScheme())) {
                     throw new IllegalStateException("DATABASE_URL must be a PostgreSQL connection URL");
                 }
+                String query = uri.getRawQuery();
+                if (query != null) query = query.replace("channel_binding=", "channelBinding=");
                 jdbcUrl = "jdbc:postgresql://" + uri.getHost()
                         + (uri.getPort() > 0 ? ":" + uri.getPort() : "")
                         + uri.getRawPath()
-                        + (uri.getRawQuery() == null ? "" : "?" + uri.getRawQuery());
+                        + (query == null ? "" : "?" + query);
                 String userInfo = uri.getRawUserInfo();
                 if (userInfo != null) {
                     String[] credentials = userInfo.split(":", 2);
