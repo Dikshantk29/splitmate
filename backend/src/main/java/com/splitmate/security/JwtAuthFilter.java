@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
     private final JwtService jwt;
     private final UserRepository users;
 
@@ -34,6 +37,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try {
                 email = jwt.subject(authorization.substring(7));
             } catch (JwtException | IllegalArgumentException invalidToken) {
+                log.warn("Rejected bearer token for {}: {}", request.getRequestURI(),
+                        invalidToken.getClass().getSimpleName());
                 SecurityContextHolder.clearContext();
                 chain.doFilter(request, response);
                 return;
@@ -41,6 +46,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             User user = users.findByEmailIgnoreCase(email).orElse(null);
             if (user == null) {
+                log.warn("JWT subject has no matching account for {}", request.getRequestURI());
                 SecurityContextHolder.clearContext();
             } else {
                 SecurityContextHolder.getContext().setAuthentication(
