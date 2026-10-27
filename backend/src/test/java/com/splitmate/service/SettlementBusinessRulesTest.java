@@ -74,7 +74,7 @@ class SettlementBusinessRulesTest {
     private void prepareLedger(List<Settlement> priorSettlements) {
         Household home = new Household("Home", 1L);
         home.id = 10L;
-        when(households.findById(10L)).thenReturn(Optional.of(home));
+        when(households.findByIdForUpdate(10L)).thenReturn(Optional.of(home));
         when(memberships.existsByHouseholdIdAndUserId(10L, 2L)).thenReturn(true);
         when(memberships.existsByHouseholdIdAndUserId(10L, 1L)).thenReturn(true);
         when(memberships.findByHouseholdId(10L)).thenReturn(List.of(
